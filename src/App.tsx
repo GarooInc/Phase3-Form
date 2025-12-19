@@ -111,7 +111,7 @@ const DocumentUploadForm: React.FC = () => {
         }
 
         console.log('Respuesta del servidor:', responseData);
-        alert('Documentos enviados correctamente');
+        alert('Documentos enviados correctamente. Por favor revise su correo electrónico, ya que se le notificará una vez los documentos hayan sido procesados.');
         
         // Opcional: Redirigir o limpiar el formulario
         // window.location.href = '/exito';
