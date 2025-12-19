@@ -118,7 +118,10 @@ const DocumentUploadForm: React.FC = () => {
 
       } catch (error) {
         console.error('Error al enviar documentos:', error);
-        alert(`Error al enviar los documentos: ${error.message || 'Por favor, intenta de nuevo.'}`);
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : 'Ocurrió un error desconocido';
+        alert(`Error al enviar los documentos: ${errorMessage}`);
       } finally {
         setIsSubmitting(false);
       }
