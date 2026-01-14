@@ -99,7 +99,7 @@ const Comprobante: React.FC = () => {
         formData.append('id', urlId);
         formData.append('cuota', cuota || '');
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL_TEST}/comprobante`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/comprobante`, {
           method: 'POST',
           body: formData,
         });
