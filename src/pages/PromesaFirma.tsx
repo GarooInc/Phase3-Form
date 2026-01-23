@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import UploadBox from '../components/UploadBox';
+import DocumentoPromesa from '../components/DocumentoPromesa';
 import { useParams } from 'react-router-dom';
 
 
@@ -130,89 +131,99 @@ const PromesaFirma: React.FC = () => {
   const uploadedCount = files.promesa_firmada.file ? 1 : 0;
 
   return (
-    <div className="min-h-screen bg-white p-6">
-      <div className="max-w-3xl mx-auto">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-block">
-            <img 
-              src="/logo.png"
-              alt="Logo" 
-              className=" w-40 object-contain" 
-            />
-          </div>
+    <div className="min-h-screen bg-white flex">
+      {/* Sección Izquierda - Documento */}
+      <div className="w-1/2 border-r border-gray-300 overflow-hidden">
+        <div className="h-full overflow-auto">
+          <DocumentoPromesa />
         </div>
+      </div>
 
-        {/* Main Card */}
-        <div className="card bg-base-200 shadow-2xl">
-          <div className="card-body">
-            <h2 className="card-title md:text-2xl text-xl mb-2">
-              Promesa Firmada de {nameclient}
-            </h2>
-            <p className="text-base-content/70 mb-6">
-              Por favor, sube la promesa firmada para completar el proceso:
-            </p>
-
-            <div className="space-y-6">
-              <UploadBox
-                type="promesa_firmada"
-                title="Promesa Firmada"
-                subtitle="Sube un PDF de la promesa firmada"
-                acceptedFormats="application/pdf"
-                fileData={files.promesa_firmada}
-                dragOver={dragOver}
-                onFileChange={handleFileChange}
-                onRemoveFile={removeFile}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
+      {/* Sección Derecha - Formulario */}
+      <div className="w-1/2 p-6 overflow-auto">
+        <div className="max-w-3xl mx-auto">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <div className="inline-block">
+              <img 
+                src="/logo.png"
+                alt="Logo" 
+                className=" w-40 object-contain" 
               />
             </div>
+          </div>
 
-            {/* Progress */}
-            <div className="mt-8 mb-6">
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="font-medium">Progreso de carga</span>
-                <span className="badge badge-outline ">{uploadedCount} de 1</span>
+          {/* Main Card */}
+          <div className="card bg-base-200 shadow-2xl">
+            <div className="card-body">
+              <h2 className="card-title md:text-2xl text-xl mb-2">
+                Promesa Firmada de {nameclient}
+              </h2>
+              <p className="text-base-content/70 mb-6">
+                Por favor, sube la promesa firmada para completar el proceso:
+              </p>
+
+              <div className="space-y-6">
+                <UploadBox
+                  type="promesa_firmada"
+                  title="Promesa Firmada"
+                  subtitle="Sube un PDF de la promesa firmada"
+                  acceptedFormats="application/pdf"
+                  fileData={files.promesa_firmada}
+                  dragOver={dragOver}
+                  onFileChange={handleFileChange}
+                  onRemoveFile={removeFile}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                />
               </div>
-              <progress 
-                className="progress progress w-full " 
-                value={uploadedCount} 
-                max="1"
-              ></progress>
-            </div>
 
-            {/* Submit Button */}
-            <div className="card-actions justify-end mt-4">
-              <button
-                onClick={handleSubmit}
-                disabled={!allFilesUploaded || isSubmitting}
-                className={`btn btn-block ${
-                  allFilesUploaded && !isSubmitting
-                    ? 'btn bg-orange-100 text-black'
-                    : 'btn-disabled'
-                }`}
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="loading loading-spinner loading-xs"></span>
-                    Enviando documentos...
-                  </>
-                ) : allFilesUploaded ? (
-                  'Enviar Documento'
-                ) : (
-                  'Completa el campo requerido'
-                )}
-              </button>
+              {/* Progress */}
+              <div className="mt-8 mb-6">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="font-medium">Progreso de carga</span>
+                  <span className="badge badge-outline ">{uploadedCount} de 1</span>
+                </div>
+                <progress 
+                  className="progress progress w-full " 
+                  value={uploadedCount} 
+                  max="1"
+                ></progress>
+              </div>
+
+              {/* Submit Button */}
+              <div className="card-actions justify-end mt-4">
+                <button
+                  onClick={handleSubmit}
+                  disabled={!allFilesUploaded || isSubmitting}
+                  className={`btn btn-block ${
+                    allFilesUploaded && !isSubmitting
+                      ? 'btn bg-orange-100 text-black'
+                      : 'btn-disabled'
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="loading loading-spinner loading-xs"></span>
+                      Enviando documentos...
+                    </>
+                  ) : allFilesUploaded ? (
+                    'Enviar Documento'
+                  ) : (
+                    'Completa el campo requerido'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="text-center mt-8">
-          <a className="text-sm text-black/70" href="https://redtec.ai/" target="_blank" rel="noopener noreferrer">
-            &copy; 2024 Redtec. Todos los derechos reservados.
-          </a>
+          {/* Footer */}
+          <div className="text-center mt-8">
+            <a className="text-sm text-black/70" href="https://redtec.ai/" target="_blank" rel="noopener noreferrer">
+              &copy; 2024 Redtec. Todos los derechos reservados.
+            </a>
+          </div>
         </div>
       </div>
     </div>
