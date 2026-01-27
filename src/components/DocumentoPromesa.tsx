@@ -232,7 +232,6 @@ const DocumentoPromesa: React.FC = () => {
         return direccion;
     };
 
-    // Helper function to get legalization date
     const getFechaLegalizacion = () => {
         const dia = getVal<string>(
             "6_Datos_de_Notificacion_y_Cierre.FechaLegalizacionDia",
@@ -302,7 +301,6 @@ const DocumentoPromesa: React.FC = () => {
         return { dia: "25", mes: "enero", anio: "veintiséis" };
     };
 
-    // Helper function to calculate contract duration in months
     const getMonthNumber = (monthName: string): number => {
         const months: { [key: string]: number } = {
             enero: 1,
@@ -321,7 +319,6 @@ const DocumentoPromesa: React.FC = () => {
         return months[monthName.toLowerCase()] || 12;
     };
 
-    // Helper function to convert number to words in Spanish
     const numberToWords = (num: number): string => {
         const units = [
             "",
@@ -479,7 +476,6 @@ const DocumentoPromesa: React.FC = () => {
             return { letras, numeros };
         }
 
-        // Try to verify if we have "SaldoFinanciar" instead
         const saldoFin = getVal<string | number>(
             "3_Condiciones_Economicas.SaldoFinanciar",
             "",
@@ -499,7 +495,6 @@ const DocumentoPromesa: React.FC = () => {
             };
         }
 
-        // Fallback calculation
         const precioRaw = getVal<string | number>(
             "3_Condiciones_Economicas.PrecioNumeros",
             "0",

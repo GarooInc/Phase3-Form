@@ -137,14 +137,6 @@ const PromesaFirma: React.FC = () => {
             try {
                 const formData = new FormData();
                 formData.append("promesa_firmada", files.promesa_firmada.file);
-                // The instruction provided a CSS property here, which is syntactically incorrect in JavaScript.
-                // Assuming the intent was to apply this style to a visual element,
-                // but without clear context on *which* element, and to maintain
-                // syntactic correctness, this line cannot be inserted here.
-                // The instruction also mentions "Remover la sombra redundante de la página principal y suavizar la sombra interna del documento".
-                // This implies changes to existing CSS classes or inline styles, not insertion into JS logic.
-                // For now, I will proceed with the rest of the code as is, as the provided
-                // "Code Edit" snippet is not valid JavaScript at this location.
 
                 const response = await fetch(
                     `${import.meta.env.VITE_API_URL}/promesafirmada`,
@@ -392,7 +384,7 @@ const PromesaFirma: React.FC = () => {
                 <div className="w-full lg:w-[40%] bg-white flex flex-col lg:border-l border-gray-100 pb-8 lg:pb-0">
                     <div className="flex-1 overflow-auto custom-scrollbar flex flex-col justify-start lg:justify-center p-6 sm:p-8 lg:p-10 xl:p-16">
                         <div className="max-w-xl w-full mx-auto animate-fade-in">
-                            {/* Main Card con estilos anteriores recuperados */}
+                            {/* Main Card */}
                             <div className="card bg-base-200 shadow-2xl">
                                 <div className="card-body">
                                     <h2 className="card-title md:text-2xl text-xl mb-2 text-white font-bold">
@@ -436,7 +428,7 @@ const PromesaFirma: React.FC = () => {
                                         ></progress>
                                     </div>
 
-                                    {/* Submit Button con estilo original recuperado */}
+                                    {/* Submit Button */}
                                     <div className="card-actions justify-end mt-4">
                                         <button
                                             onClick={handleSubmit}
