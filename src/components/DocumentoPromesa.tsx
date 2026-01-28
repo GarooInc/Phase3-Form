@@ -7,8 +7,8 @@ interface Comprador {
     DPI_Letras?: string;
     EstadoCivil?: string;
     Profesion?: string;
-    Edad?: string;
-    EdadLetras?: string;
+    Edad_Numeros?: number;
+    Edad_Letras?: string;
     Nacionalidad?: string;
     Direccion?: string;
 }
@@ -40,11 +40,9 @@ interface Proyecto {
 }
 
 interface Pago {
-    PagoN_Dia?: string;
-    PagoN_Mes?: string;
-    PagoN_Anio?: string;
-    PagoN_Monto?: string;
-    PagoN_Monto_Num?: string;
+    pago?: string;
+    fecha?: string;
+    value?: string;
 }
 
 interface Estacionamiento {
@@ -62,51 +60,52 @@ interface Bodega {
 }
 
 interface WebhookData {
-    compradores?: Comprador[];
+    Compradores?: Comprador[];
     proyecto?: Proyecto;
-    "2_Descripcion_del_Inmueble"?: {
+    Descripcion_del_Inmueble?: {
         Apartamento?: string;
         Torre?: string;
         Nivel?: string;
         Habitaciones?: string;
         DescripcionApartamento?: string;
         AreaConstruccionLetras?: string;
-        AreaConstruccionNumeros?: string;
+        AreaConstruccionNumeros?: number;
         ParqueosDescripcion?: string;
+        BodegasDescripcion?: string;
         TerrazaBalconAreaLetras?: string;
-        TerrazaBalconAreaNumeros?: string;
+        TerrazaBalconAreaNumeros?: number;
         Estacionamientos?: Estacionamiento[];
         Bodegas?: Bodega[];
     };
-    "3_Condiciones_Economicas"?: {
+    Condiciones_Economicas?: {
         PrecioLetras?: string;
-        PrecioNumeros?: string;
+        PrecioNumeros?: number;
         ReservaLetras?: string;
-        ReservaNumeros?: string;
+        ReservaNumeros?: number;
         SegundoPagoLetras?: string;
-        SegundoPagoNumeros?: string;
+        SegundoPagoNumeros?: number;
         CantidadPagosLetras?: string;
-        CantidadPagosNumeros?: string;
+        CantidadPagosNumeros?: number;
         TercerPagoLetras?: string;
-        TercerPagoNumeros?: string;
+        TercerPagoNumeros?: number;
     };
-    "4_Cronograma_de_Pagos_Detallado"?: Pago[];
-    "5_Liquidacion_Final_y_Plazos"?: {
+    Pagos?: Pago[];
+    Liquidacion_Final_y_Plazos?: {
         PlazoMesesLetras?: string;
-        PlazoMesesNumeros?: string;
+        PlazoMesesNumeros?: number;
         MesEntrega?: string;
-        AnioEntrega?: string;
+        AnioEntrega?: number;
         UltimoPagoLetras?: string;
-        UltimoPagoNumeros?: string;
+        UltimoPagoNumeros?: number;
     };
-    "6_Datos_de_Notificacion_y_Cierre"?: {
+    Datos_de_Notificacion_y_Cierre?: {
         Direccion?: string;
-        FechaFirmaDia?: string;
+        FechaFirmaDia?: number;
         FechaFirmaMes?: string;
-        FechaFirmaAnio?: string;
-        FechaLegalizacionDia?: string;
+        FechaFirmaAnio?: number;
+        FechaLegalizacionDia?: number;
         FechaLegalizacionMes?: string;
-        FechaLegalizacionAnio?: string;
+        FechaLegalizacionAnio?: number;
     };
 }
 
@@ -121,13 +120,67 @@ const DocumentoPromesa: React.FC = () => {
 
     useEffect(() => {
         if (id) {
-            console.log("Realizando llamada al webhook con id:", id);
+            console.log("=== LLAMADA AL WEBHOOK ===");
+            console.log("ID enviado:", id);
+            console.log(
+                "URL:",
+                "https://agentsprod.redtec.ai/webhook/promesa-document",
+            );
+            console.log("Body:", JSON.stringify({ id }));
+            console.log("==========================");
+
             fetch("https://agentsprod.redtec.ai/webhook/promesa-document", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id }),
             })
-                .then((response) => response.json())
+                .then(async (response) => {
+                    console.log("\n=== RESPUESTA DEL WEBHOOK ===");
+                    console.log("Status:", response.status);
+                    console.log("OK:", response.ok);
+                    console.log("Status Text:", response.statusText);
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `HTTP error! status: ${response.status}`,
+                        );
+                    }
+
+                    const text = await response.text();
+                    console.log(
+                        "Longitud de respuesta:",
+                        text.length,
+                        "caracteres",
+                    );
+                    console.log(
+                        "Primeros 500 caracteres:",
+                        text.substring(0, 500),
+                    );
+                    console.log("============================\n");
+
+                    if (!text || text.trim() === "") {
+                        console.error(
+                            "⚠️ ERROR: El webhook devolvió una respuesta vacía.",
+                        );
+                        console.error("Verifica que:");
+                        console.error("1. El ID existe en la base de datos");
+                        console.error(
+                            "2. El flujo de n8n está configurado correctamente",
+                        );
+                        console.error(
+                            "3. El flujo de n8n está devolviendo datos",
+                        );
+                        throw new Error("Respuesta vacía del servidor");
+                    }
+
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error("Error parsing JSON:", e);
+                        console.error("Texto recibido:", text);
+                        throw new Error("Respuesta inválida del servidor");
+                    }
+                })
                 .then((jsonData: ApiResponse) => {
                     let payload: WebhookData | null = null;
                     if (jsonData && typeof jsonData === "object") {
@@ -139,21 +192,6 @@ const DocumentoPromesa: React.FC = () => {
                     }
 
                     if (payload) {
-                        if (
-                            !payload["4_Cronograma_de_Pagos_Detallado"] ||
-                            payload["4_Cronograma_de_Pagos_Detallado"]
-                                .length === 0
-                        ) {
-                            payload["4_Cronograma_de_Pagos_Detallado"] = [
-                                {
-                                    PagoN_Dia: "10",
-                                    PagoN_Mes: "febrero",
-                                    PagoN_Anio: "2026",
-                                    PagoN_Monto: "ochocientos",
-                                    PagoN_Monto_Num: "800.00",
-                                },
-                            ];
-                        }
                         if (!payload.proyecto) {
                             payload.proyecto = {
                                 total_unidades: "noventa y cinco",
@@ -217,7 +255,7 @@ const DocumentoPromesa: React.FC = () => {
         field: keyof Comprador,
         fallback: string = `[COMPRADOR_${index + 1}_${field.toUpperCase()}]`,
     ) => {
-        const compradores = getVal<Comprador[]>("compradores", []);
+        const compradores = getVal<Comprador[]>("Compradores", []);
         if (compradores[index] && compradores[index][field]) {
             return compradores[index][field] as string;
         }
@@ -226,33 +264,28 @@ const DocumentoPromesa: React.FC = () => {
 
     const getDireccionComprador = () => {
         const direccion = getVal<string>(
-            "6_Datos_de_Notificacion_y_Cierre.Direccion",
+            "Datos_de_Notificacion_y_Cierre.Direccion",
             "15 Calle 2-00 Zona 10, Ciudad de Guatemala",
         );
         return direccion;
     };
 
     const getFechaLegalizacion = () => {
-        const dia = getVal<string>(
-            "6_Datos_de_Notificacion_y_Cierre.FechaLegalizacionDia",
-            "[DIA_LEGALIZACION]",
+        const dia = getVal<number>(
+            "Datos_de_Notificacion_y_Cierre.FechaLegalizacionDia",
+            0,
         );
         const mes = getVal<string>(
-            "6_Datos_de_Notificacion_y_Cierre.FechaLegalizacionMes",
+            "Datos_de_Notificacion_y_Cierre.FechaLegalizacionMes",
             "[MES_LEGALIZACION]",
         );
-        const anio = getVal<string>(
-            "6_Datos_de_Notificacion_y_Cierre.FechaLegalizacionAnio",
-            "[ANIO_LEGALIZACION]",
+        const anio = getVal<number>(
+            "Datos_de_Notificacion_y_Cierre.FechaLegalizacionAnio",
+            0,
         );
 
-        if (
-            dia !== "[DIA_LEGALIZACION]" &&
-            mes !== "[MES_LEGALIZACION]" &&
-            anio !== "[ANIO_LEGALIZACION]"
-        ) {
+        if (dia !== 0 && mes !== "[MES_LEGALIZACION]" && anio !== 0) {
             const anioStr = anio.toString();
-            // Convert numbers to words for specific cases or just slice
             const anioProc =
                 anioStr === "2026"
                     ? "veintiséis"
@@ -261,31 +294,27 @@ const DocumentoPromesa: React.FC = () => {
                       : anioStr.length === 4
                         ? anioStr.slice(-2)
                         : anioStr;
-            return { dia, mes, anio: anioProc };
+            return { dia: dia.toString(), mes, anio: anioProc };
         }
 
         return { dia: "23", mes: "enero", anio: "veintiséis" };
     };
 
     const getFechaFirma = () => {
-        const dia = getVal<string>(
-            "6_Datos_de_Notificacion_y_Cierre.FechaFirmaDia",
-            "[DIA_FIRMA]",
+        const dia = getVal<number>(
+            "Datos_de_Notificacion_y_Cierre.FechaFirmaDia",
+            0,
         );
         const mes = getVal<string>(
-            "6_Datos_de_Notificacion_y_Cierre.FechaFirmaMes",
+            "Datos_de_Notificacion_y_Cierre.FechaFirmaMes",
             "[MES_FIRMA]",
         );
-        const anio = getVal<string>(
-            "6_Datos_de_Notificacion_y_Cierre.FechaFirmaAnio",
-            "[ANIO_FIRMA]",
+        const anio = getVal<number>(
+            "Datos_de_Notificacion_y_Cierre.FechaFirmaAnio",
+            0,
         );
 
-        if (
-            dia !== "[DIA_FIRMA]" &&
-            mes !== "[MES_FIRMA]" &&
-            anio !== "[ANIO_FIRMA]"
-        ) {
+        if (dia !== 0 && mes !== "[MES_FIRMA]" && anio !== 0) {
             const anioStr = anio.toString();
             const anioProc =
                 anioStr === "2026"
@@ -295,28 +324,10 @@ const DocumentoPromesa: React.FC = () => {
                       : anioStr.length === 4
                         ? anioStr.slice(-2)
                         : anioStr;
-            return { dia, mes, anio: anioProc };
+            return { dia: dia.toString(), mes, anio: anioProc };
         }
 
         return { dia: "25", mes: "enero", anio: "veintiséis" };
-    };
-
-    const getMonthNumber = (monthName: string): number => {
-        const months: { [key: string]: number } = {
-            enero: 1,
-            febrero: 2,
-            marzo: 3,
-            abril: 4,
-            mayo: 5,
-            junio: 6,
-            julio: 7,
-            agosto: 8,
-            septiembre: 9,
-            octubre: 10,
-            noviembre: 11,
-            diciembre: 12,
-        };
-        return months[monthName.toLowerCase()] || 12;
     };
 
     const numberToWords = (num: number): string => {
@@ -390,32 +401,24 @@ const DocumentoPromesa: React.FC = () => {
 
     const getPlazoMeses = () => {
         const plazoLetras = getVal<string>(
-            "5_Liquidacion_Final_y_Plazos.PlazoMesesLetras",
+            "Liquidacion_Final_y_Plazos.PlazoMesesLetras",
             "[PLAZO_LETRAS]",
         );
-        const plazoNumeros = getVal<string | number>(
-            "5_Liquidacion_Final_y_Plazos.PlazoMesesNumeros",
-            "[PLAZO_NUMEROS]",
+        const plazoNumeros = getVal<number>(
+            "Liquidacion_Final_y_Plazos.PlazoMesesNumeros",
+            0,
         );
 
-        if (
-            plazoLetras !== "[PLAZO_LETRAS]" &&
-            plazoNumeros !== "[PLAZO_NUMEROS]"
-        ) {
+        if (plazoLetras !== "[PLAZO_LETRAS]" && plazoNumeros !== 0) {
             return { letras: plazoLetras, numeros: plazoNumeros.toString() };
         }
 
-        const pagos = getVal<Pago[]>("4_Cronograma_de_Pagos_Detallado", []);
+        const pagos = getVal<Pago[]>("Pagos", []);
         if (pagos.length > 0) {
             const lastPago = pagos[pagos.length - 1];
-            if (lastPago.PagoN_Anio && lastPago.PagoN_Mes) {
+            if (lastPago.fecha) {
                 const currentDate = new Date();
-                const monthNumCurrent = getMonthNumber(lastPago.PagoN_Mes);
-                const lastPaymentDate = new Date(
-                    Number(lastPago.PagoN_Anio),
-                    monthNumCurrent - 1,
-                    1,
-                );
+                const lastPaymentDate = new Date(lastPago.fecha);
                 const monthsDiff =
                     (lastPaymentDate.getFullYear() -
                         currentDate.getFullYear()) *
@@ -433,25 +436,38 @@ const DocumentoPromesa: React.FC = () => {
 
     const getMesEntrega = () => {
         const mesEntrega = getVal<string>(
-            "5_Liquidacion_Final_y_Plazos.MesEntrega",
+            "Liquidacion_Final_y_Plazos.MesEntrega",
             "[MES_ENTREGA]",
         );
-        const anioEntrega = getVal<string>(
-            "5_Liquidacion_Final_y_Plazos.AnioEntrega",
-            "[ANIO_ENTREGA]",
+        const anioEntrega = getVal<number>(
+            "Liquidacion_Final_y_Plazos.AnioEntrega",
+            0,
         );
 
-        if (
-            mesEntrega !== "[MES_ENTREGA]" &&
-            anioEntrega !== "[ANIO_ENTREGA]"
-        ) {
+        if (mesEntrega !== "[MES_ENTREGA]" && anioEntrega !== 0) {
             return `${mesEntrega} de ${anioEntrega}`;
         }
-        const pagos = getVal<Pago[]>("4_Cronograma_de_Pagos_Detallado", []);
+        const pagos = getVal<Pago[]>("Pagos", []);
         if (pagos.length > 0) {
             const lastPago = pagos[pagos.length - 1];
-            if (lastPago.PagoN_Mes && lastPago.PagoN_Anio) {
-                return `${lastPago.PagoN_Mes} del año ${lastPago.PagoN_Anio}`;
+            if (lastPago.fecha) {
+                const lastDate = new Date(lastPago.fecha);
+                const meses = [
+                    "enero",
+                    "febrero",
+                    "marzo",
+                    "abril",
+                    "mayo",
+                    "junio",
+                    "julio",
+                    "agosto",
+                    "septiembre",
+                    "octubre",
+                    "noviembre",
+                    "diciembre",
+                ];
+                const mes = meses[lastDate.getMonth()];
+                return `${mes} del año ${lastDate.getFullYear()}`;
             }
         }
         return "diciembre del año 2027";
@@ -459,32 +475,30 @@ const DocumentoPromesa: React.FC = () => {
 
     const getSaldoFinal = () => {
         const letras = getVal<string>(
-            "3_Condiciones_Economicas.TercerPagoLetras",
+            "Condiciones_Economicas.TercerPagoLetras",
             "[SALDO_LETRAS]",
         );
-        const numeros = getVal<string | number>(
-            "3_Condiciones_Economicas.TercerPagoNumeros",
-            "[SALDO_NUMEROS]",
+        const numeros = getVal<number>(
+            "Condiciones_Economicas.TercerPagoNumeros",
+            0,
         );
 
-        if (
-            letras !== "[SALDO_LETRAS]" &&
-            numeros !== "[SALDO_NUMEROS]" &&
-            letras &&
-            numeros
-        ) {
-            return { letras, numeros };
+        if (letras !== "[SALDO_LETRAS]" && numeros !== 0 && letras && numeros) {
+            return {
+                letras,
+                numeros: numeros.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                }),
+            };
         }
 
-        const saldoFin = getVal<string | number>(
-            "3_Condiciones_Economicas.SaldoFinanciar",
-            "",
+        const saldoFin = getVal<number>(
+            "Condiciones_Economicas.SaldoFinanciar",
+            0,
         );
         if (saldoFin) {
-            const val =
-                typeof saldoFin === "string"
-                    ? parseFloat(saldoFin.replace(/,/g, ""))
-                    : saldoFin;
+            const val = saldoFin;
             const text = numberToWords(Math.floor(val));
             return {
                 letras: text,
@@ -495,28 +509,21 @@ const DocumentoPromesa: React.FC = () => {
             };
         }
 
-        const precioRaw = getVal<string | number>(
-            "3_Condiciones_Economicas.PrecioNumeros",
-            "0",
+        const precioRaw = getVal<number>(
+            "Condiciones_Economicas.PrecioNumeros",
+            0,
         );
-        const reservaRaw = getVal<string | number>(
-            "3_Condiciones_Economicas.ReservaNumeros",
-            "0",
+        const reservaRaw = getVal<number>(
+            "Condiciones_Economicas.ReservaNumeros",
+            0,
         );
-        const segundoRaw = getVal<string | number>(
-            "3_Condiciones_Economicas.SegundoPagoNumeros",
-            "0",
+        const segundoRaw = getVal<number>(
+            "Condiciones_Economicas.SegundoPagoNumeros",
+            0,
         );
 
-        const parseVal = (v: string | number) =>
-            typeof v === "string" ? parseFloat(v.replace(/,/g, "")) : v;
-
-        const precio = parseVal(precioRaw);
-        const reserva = parseVal(reservaRaw);
-        const segundo = parseVal(segundoRaw);
-
-        if (precio > 0) {
-            const saldo = precio - reserva - segundo;
+        if (precioRaw > 0) {
+            const saldo = precioRaw - reservaRaw - segundoRaw;
             return {
                 letras: numberToWords(Math.floor(saldo)),
                 numeros: saldo.toLocaleString("en-US", {
@@ -701,7 +708,7 @@ const DocumentoPromesa: React.FC = () => {
                 >
                     APARTAMENTO{" "}
                     <span className="dynamic-data">
-                        {getVal("2_Descripcion_del_Inmueble.Apartamento")}
+                        {getVal("Descripcion_del_Inmueble.Apartamento")}
                     </span>
                 </div>
 
@@ -714,7 +721,7 @@ const DocumentoPromesa: React.FC = () => {
                 >
                     TORRE{" "}
                     <span className="dynamic-data">
-                        {getVal("2_Descripcion_del_Inmueble.Torre")}
+                        {getVal("Descripcion_del_Inmueble.Torre")}
                     </span>
                 </div>
 
@@ -771,7 +778,7 @@ const DocumentoPromesa: React.FC = () => {
                 <p>
                     {(() => {
                         const compradores = getVal<Comprador[]>(
-                            "compradores",
+                            "Compradores",
                             [],
                         );
                         if (compradores.length > 1) {
@@ -792,7 +799,7 @@ const DocumentoPromesa: React.FC = () => {
                                             </span>
                                             , quien declaro ser de{" "}
                                             <span className="highlight-yellow">
-                                                {c.EdadLetras}
+                                                {c.Edad_Letras}
                                             </span>{" "}
                                             de edad,{" "}
                                             <span className="highlight-yellow">
@@ -847,7 +854,7 @@ const DocumentoPromesa: React.FC = () => {
                                     </span>
                                     , quien declaro ser de{" "}
                                     <span className="highlight-yellow">
-                                        {getComprador(0, "EdadLetras")}
+                                        {getComprador(0, "Edad_Letras")}
                                     </span>{" "}
                                     de edad,{" "}
                                     <span className="highlight-yellow">
@@ -1037,22 +1044,22 @@ const DocumentoPromesa: React.FC = () => {
                     vendedora considere para el proyecto, y del cual formarán
                     parte, entre otros: El apartamento{" "}
                     <span className="highlight-yellow">
-                        {getVal("2_Descripcion_del_Inmueble.Apartamento")}
+                        {getVal("Descripcion_del_Inmueble.Apartamento")}
                     </span>{" "}
                     Torre{" "}
                     <span className="highlight-yellow">
-                        {getVal("2_Descripcion_del_Inmueble.Torre")}
+                        {getVal("Descripcion_del_Inmueble.Torre")}
                     </span>
                     , ubicado en el nivel{" "}
                     <span className="highlight-yellow">
-                        {getVal("2_Descripcion_del_Inmueble.Nivel")}
+                        {getVal("Descripcion_del_Inmueble.Nivel")}
                     </span>{" "}
                     del Complejo;{" "}
                     <span className="highlight-red">
                         las{" "}
                         {(() => {
                             const ests = getVal<Estacionamiento[]>(
-                                "2_Descripcion_del_Inmueble.Estacionamientos",
+                                "Descripcion_del_Inmueble.Estacionamientos",
                                 [],
                             );
                             const count = Array.isArray(ests) ? ests.length : 0;
@@ -1061,7 +1068,7 @@ const DocumentoPromesa: React.FC = () => {
                         (
                         {(() => {
                             const ests = getVal<Estacionamiento[]>(
-                                "2_Descripcion_del_Inmueble.Estacionamientos",
+                                "Descripcion_del_Inmueble.Estacionamientos",
                                 [],
                             );
                             return Array.isArray(ests) ? ests.length : 0;
@@ -1073,7 +1080,7 @@ const DocumentoPromesa: React.FC = () => {
 
                 {(() => {
                     const estacionamientos = getVal<Estacionamiento[]>(
-                        "2_Descripcion_del_Inmueble.Estacionamientos",
+                        "Descripcion_del_Inmueble.Estacionamientos",
                         [],
                     );
 
@@ -1127,7 +1134,7 @@ const DocumentoPromesa: React.FC = () => {
                     <span className="highlight-red">
                         {(() => {
                             const bodegas = getVal<Bodega[]>(
-                                "2_Descripcion_del_Inmueble.Bodegas",
+                                "Descripcion_del_Inmueble.Bodegas",
                                 [],
                             );
                             return numberToWords(bodegas.length).toUpperCase();
@@ -1137,7 +1144,7 @@ const DocumentoPromesa: React.FC = () => {
                     <span className="highlight-red">
                         {(() => {
                             const bodegas = getVal<Bodega[]>(
-                                "2_Descripcion_del_Inmueble.Bodegas",
+                                "Descripcion_del_Inmueble.Bodegas",
                                 [],
                             );
                             return bodegas.length;
@@ -1148,7 +1155,7 @@ const DocumentoPromesa: React.FC = () => {
 
                 {(() => {
                     const bodegas = getVal<Bodega[]>(
-                        "2_Descripcion_del_Inmueble.Bodegas",
+                        "Descripcion_del_Inmueble.Bodegas",
                         [],
                     );
 
@@ -1209,24 +1216,24 @@ const DocumentoPromesa: React.FC = () => {
                     describen así: <span className="bold">a)</span> El
                     apartamento identificado como Apartamento{" "}
                     <span className="highlight-yellow">
-                        {getVal("2_Descripcion_del_Inmueble.Apartamento")}
+                        {getVal("Descripcion_del_Inmueble.Apartamento")}
                     </span>{" "}
                     Torre{" "}
                     <span className="highlight-yellow">
-                        {getVal("2_Descripcion_del_Inmueble.Torre")}
+                        {getVal("Descripcion_del_Inmueble.Torre")}
                     </span>
                     , ubicado en el nivel{" "}
                     <span className="highlight-yellow">
-                        {getVal("2_Descripcion_del_Inmueble.Nivel")}
+                        {getVal("Descripcion_del_Inmueble.Nivel")}
                     </span>{" "}
                     del Complejo; apartamento que consta de{" "}
                     <span className="highlight-yellow">
-                        {getVal("2_Descripcion_del_Inmueble.Habitaciones")}
+                        {getVal("Descripcion_del_Inmueble.Habitaciones")}
                     </span>{" "}
                     habitaciones,{" "}
                     <span className="highlight-yellow">
                         {getVal(
-                            "2_Descripcion_del_Inmueble.DescripcionApartamento",
+                            "Descripcion_del_Inmueble.DescripcionApartamento",
                             "[DESCRIPCION_APARTAMENTO]",
                         )}
                     </span>
@@ -1236,19 +1243,19 @@ const DocumentoPromesa: React.FC = () => {
                     Y contará con un área aproximada de{" "}
                     <span className="highlight-yellow">
                         {getVal(
-                            "2_Descripcion_del_Inmueble.AreaConstruccionLetras",
+                            "Descripcion_del_Inmueble.AreaConstruccionLetras",
                         )}
                     </span>{" "}
                     (
                     <span className="highlight-yellow">
                         {getVal(
-                            "2_Descripcion_del_Inmueble.AreaConstruccionNumeros",
+                            "Descripcion_del_Inmueble.AreaConstruccionNumeros",
                         )}
                     </span>{" "}
                     m2) de construcción; <span className="bold">b)</span>{" "}
                     <span className="highlight-red">
                         {getVal(
-                            "2_Descripcion_del_Inmueble.ParqueosDescripcion",
+                            "Descripcion_del_Inmueble.ParqueosDescripcion",
                             "[DESCRIPCION_PARQUEOS]",
                         )}
                     </span>
@@ -1256,14 +1263,14 @@ const DocumentoPromesa: React.FC = () => {
                     un área aproximada de{" "}
                     <span className="highlight-red">
                         {getVal(
-                            "2_Descripcion_del_Inmueble.TerrazaBalconAreaLetras",
+                            "Descripcion_del_Inmueble.TerrazaBalconAreaLetras",
                             "[AREA_TERRAZA_LETRAS]",
                         )}
                     </span>{" "}
                     (
                     <span className="highlight-red">
                         {getVal(
-                            "2_Descripcion_del_Inmueble.TerrazaBalconAreaNumeros",
+                            "Descripcion_del_Inmueble.TerrazaBalconAreaNumeros",
                             "[AREA_TERRAZA_NUMEROS]",
                         )}
                     </span>{" "}
@@ -1413,14 +1420,14 @@ const DocumentoPromesa: React.FC = () => {
                     en la cláusula que antecede es de{" "}
                     <span className="highlight-yellow">
                         {getVal<string>(
-                            "3_Condiciones_Economicas.PrecioLetras",
+                            "Condiciones_Economicas.PrecioLetras",
                             "[PRECIO_LETRAS]",
                         ).replace(/\s*quetzales\s*$/i, "")}
                     </span>{" "}
                     quetzales (Q.{" "}
                     <span className="highlight-yellow">
                         {getVal(
-                            "3_Condiciones_Economicas.PrecioNumeros",
+                            "Condiciones_Economicas.PrecioNumeros",
                             "[PRECIO_NUMEROS]",
                         )}
                     </span>
@@ -1451,14 +1458,14 @@ const DocumentoPromesa: React.FC = () => {
                     cantidad de{" "}
                     <span className="highlight-yellow">
                         {getVal<string>(
-                            "3_Condiciones_Economicas.ReservaLetras",
+                            "Condiciones_Economicas.ReservaLetras",
                             "[RESERVA_LETRAS]",
                         ).replace(/\s*quetzales\s*$/i, "")}
                     </span>{" "}
                     quetzales (Q.{" "}
                     <span className="highlight-yellow">
                         {getVal(
-                            "3_Condiciones_Economicas.ReservaNumeros",
+                            "Condiciones_Economicas.ReservaNumeros",
                             "[RESERVA_NUMEROS]",
                         )}
                     </span>
@@ -1472,28 +1479,28 @@ const DocumentoPromesa: React.FC = () => {
                     cantidad total de{" "}
                     <span className="highlight-yellow">
                         {getVal<string>(
-                            "3_Condiciones_Economicas.SegundoPagoLetras",
+                            "Condiciones_Economicas.SegundoPagoLetras",
                             "[SEGUNDO_PAGO_LETRAS]",
                         ).replace(/\s*quetzales\s*$/i, "")}
                     </span>{" "}
                     quetzales (Q.{" "}
                     <span className="highlight-yellow">
                         {getVal(
-                            "3_Condiciones_Economicas.SegundoPagoNumeros",
+                            "Condiciones_Economicas.SegundoPagoNumeros",
                             "[SEGUNDO_PAGO_NUMEROS]",
                         )}
                     </span>
                     ) , que la parte Promitente Compradora entregará mediante{" "}
                     <span className="highlight-red">
                         {getVal(
-                            "3_Condiciones_Economicas.CantidadPagosLetras",
+                            "Condiciones_Economicas.CantidadPagosLetras",
                             "veintidós",
                         )}
                     </span>{" "}
                     (
                     <span className="highlight-red">
                         {getVal(
-                            "3_Condiciones_Economicas.CantidadPagosNumeros",
+                            "Condiciones_Economicas.CantidadPagosNumeros",
                             "22",
                         )}
                     </span>
@@ -1502,42 +1509,67 @@ const DocumentoPromesa: React.FC = () => {
 
                 <div style={{ marginLeft: "20px" }}>
                     {(() => {
-                        const pagos = getVal<Pago[]>(
-                            "4_Cronograma_de_Pagos_Detallado",
-                            [],
-                        );
+                        const pagos = getVal<Pago[]>("Pagos", []);
 
                         if (!Array.isArray(pagos) || pagos.length === 0)
                             return null;
 
-                        return pagos.map((p: Pago, idx: number) => (
-                            <p
-                                key={idx}
-                                style={{ margin: "5px 0", textIndent: "0" }}
-                            >
-                                {idx + 1}) El día{" "}
-                                <span className="highlight-red">
-                                    {p.PagoN_Dia}
-                                </span>{" "}
-                                de{" "}
-                                <span className="highlight-red">
-                                    {p.PagoN_Mes}
-                                </span>{" "}
-                                del año{" "}
-                                <span className="highlight-red">
-                                    {p.PagoN_Anio}
-                                </span>
-                                , la cantidad de{" "}
-                                <span className="highlight-red">
-                                    {p.PagoN_Monto}
-                                </span>{" "}
-                                (Q.{" "}
-                                <span className="highlight-red">
-                                    {p.PagoN_Monto_Num}
-                                </span>
-                                );
-                            </p>
-                        ));
+                        const meses = [
+                            "enero",
+                            "febrero",
+                            "marzo",
+                            "abril",
+                            "mayo",
+                            "junio",
+                            "julio",
+                            "agosto",
+                            "septiembre",
+                            "octubre",
+                            "noviembre",
+                            "diciembre",
+                        ];
+
+                        return pagos.map((p: Pago, idx: number) => {
+                            if (!p.fecha || !p.value) return null;
+
+                            const fecha = new Date(p.fecha);
+                            const dia = fecha.getDate();
+                            const mes = meses[fecha.getMonth()];
+                            const anio = fecha.getFullYear();
+
+                            const valorNum = parseFloat(p.value);
+                            const valorTexto = numberToWords(
+                                Math.floor(valorNum),
+                            );
+
+                            return (
+                                <p
+                                    key={idx}
+                                    style={{ margin: "5px 0", textIndent: "0" }}
+                                >
+                                    {idx + 1}) El día{" "}
+                                    <span className="highlight-red">{dia}</span>{" "}
+                                    de{" "}
+                                    <span className="highlight-red">{mes}</span>{" "}
+                                    del año{" "}
+                                    <span className="highlight-red">
+                                        {anio}
+                                    </span>
+                                    , la cantidad de{" "}
+                                    <span className="highlight-red">
+                                        {valorTexto}
+                                    </span>{" "}
+                                    (Q.{" "}
+                                    <span className="highlight-red">
+                                        {valorNum.toLocaleString("en-US", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        })}
+                                    </span>
+                                    );
+                                </p>
+                            );
+                        });
                     })()}
                 </div>
 
@@ -1909,7 +1941,7 @@ const DocumentoPromesa: React.FC = () => {
             {/* Firmas del Contrato */}
             <div id="firmas" style={{ marginTop: "100px" }}>
                 {(() => {
-                    const compradores = getVal<Comprador[]>("compradores", []);
+                    const compradores = getVal<Comprador[]>("Compradores", []);
                     // Lista de firmantes: Vendedor + Compradores
                     const firmantes = [
                         { label: "POR LA PARTE VENDEDORA" },
@@ -1979,7 +2011,7 @@ const DocumentoPromesa: React.FC = () => {
                     , Yo, el infrascrito Notario hago constar que las{" "}
                     {(() => {
                         const compradores = getVal<Comprador[]>(
-                            "compradores",
+                            "Compradores",
                             [],
                         );
                         const count = compradores.length + 1;
@@ -2013,7 +2045,7 @@ const DocumentoPromesa: React.FC = () => {
                 </p>
 
                 {(() => {
-                    const compradores = getVal<Comprador[]>("compradores", []);
+                    const compradores = getVal<Comprador[]>("Compradores", []);
                     if (!Array.isArray(compradores)) return null;
 
                     return compradores.map((c: Comprador, idx: number) => (
@@ -2046,7 +2078,7 @@ const DocumentoPromesa: React.FC = () => {
 
             <div style={{ marginTop: "80px" }}>
                 {(() => {
-                    const compradores = getVal<Comprador[]>("compradores", []);
+                    const compradores = getVal<Comprador[]>("Compradores", []);
                     // Total de firmas: 1 Vendedor + N Compradores
                     const totalFirmas = 1 + compradores.length;
 
