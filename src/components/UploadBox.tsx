@@ -3,23 +3,25 @@ import { IoCloudUpload } from "react-icons/io5";
 import { MdDeleteOutline } from "react-icons/md";
 import { FaFilePdf } from "react-icons/fa";
 
-
 interface FileUpload {
   file: File | null;
   preview: string | null;
 }
 
 interface UploadBoxProps {
-  type: string; 
+  type: string;
   title: string;
   subtitle: string;
   acceptedFormats: string;
   fileData: FileUpload;
   dragOver: string | null;
   formatPdfUrl?: string;
-  onFileChange: (type: string, file: File) => void; 
-  onRemoveFile: (type: string) => void; 
-  onDrop: (e: React.DragEvent, type: string) => void; 
+  belowSubtitleLinkText?: string;
+  belowSubtitleLinkHref?: string;
+  belowSubtitleLinkOnClick?: () => void;
+  onFileChange: (type: string, file: File) => void;
+  onRemoveFile: (type: string) => void;
+  onDrop: (e: React.DragEvent, type: string) => void;
   onDragOver: (e: React.DragEvent, type: string) => void;
   onDragLeave: () => void;
 }
@@ -32,6 +34,9 @@ const UploadBox: React.FC<UploadBoxProps> = ({
   fileData,
   dragOver,
   formatPdfUrl,
+  belowSubtitleLinkText,
+  belowSubtitleLinkHref,
+  belowSubtitleLinkOnClick,
   onFileChange,
   onRemoveFile,
   onDrop,
@@ -53,9 +58,9 @@ const UploadBox: React.FC<UploadBoxProps> = ({
         {formatPdfUrl && (
           <>
             {' - '}
-            <a 
-              href={formatPdfUrl} 
-              target="_blank" 
+            <a
+              href={formatPdfUrl}
+              target="_blank"
               rel="noopener noreferrer"
               className="text-green-300 hover:text-green-400 underline font-medium"
             >
@@ -64,17 +69,33 @@ const UploadBox: React.FC<UploadBoxProps> = ({
           </>
         )}
       </p>
-      
+
+      {belowSubtitleLinkText && (belowSubtitleLinkHref || belowSubtitleLinkOnClick) && (
+        <a
+          href={belowSubtitleLinkHref || "#"}
+          onClick={(e) => {
+            if (belowSubtitleLinkOnClick) {
+              e.preventDefault();
+              belowSubtitleLinkOnClick();
+            }
+          }}
+          target={belowSubtitleLinkHref ? "_blank" : undefined}
+          rel={belowSubtitleLinkHref ? "noopener noreferrer" : undefined}
+          className="text-xs text-green-300 hover:text-green-400 underline font-medium mb-3 inline-block"
+        >
+          {belowSubtitleLinkText}
+        </a>
+      )}
+
       {!fileData.file ? (
         <div
           onDrop={(e) => onDrop(e, type)}
           onDragOver={(e) => onDragOver(e, type)}
           onDragLeave={onDragLeave}
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer ${
-            dragOver === type 
-              ? 'border-warning bg-warning/10' 
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer ${dragOver === type
+              ? 'border-warning bg-warning/10'
               : 'border-base-300 hover:border-white hover:bg-base-200'
-          }`}
+            }`}
         >
           <input
             type="file"
@@ -101,14 +122,14 @@ const UploadBox: React.FC<UploadBoxProps> = ({
           <div className="flex items-start justify-between w-full">
             <div className="flex items-start gap-3 flex-1 min-w-0">
               {isImage && fileData.preview ? (
-                <img 
-                  src={fileData.preview} 
-                  alt="Preview" 
+                <img
+                  src={fileData.preview}
+                  alt="Preview"
                   className="h-16 w-16 object-cover rounded-lg"
                 />
               ) : isPDF ? (
                 <div className="h-16 w-16  flex items-center justify-center">
-                    <FaFilePdf className="h-10 w-10 text-gray-600" />
+                  <FaFilePdf className="h-10 w-10 text-gray-600" />
                 </div>
               ) : null}
               <div className="flex-1 min-w-0">
@@ -127,7 +148,7 @@ const UploadBox: React.FC<UploadBoxProps> = ({
               className="btn btn-circle btn-ghost btn-sm ml-2 flex-shrink-0 absolute top-2 right-2"
               aria-label="Eliminar archivo"
             >
-                <MdDeleteOutline className="h-6 w-6 text-error" />
+              <MdDeleteOutline className="h-6 w-6 text-error" />
             </button>
           </div>
         </div>

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import UploadBox from '../components/UploadBox';
 import { useParams } from 'react-router-dom';
 
-
 interface FileUpload {
   file: File | null;
   preview: string | null;
@@ -13,7 +12,6 @@ const Cierre: React.FC = () => {
   const [urlId, setUrlId] = useState<string | null>(null);
   const [nameclient, setName] = useState<string>('');
   const [autorizacionesEspeciales, setAutorizacionesEspeciales] = useState<boolean>(false);
-
 
   useEffect(() => {
     setUrlId(id || null);
@@ -26,15 +24,15 @@ const Cierre: React.FC = () => {
         method: 'POST',
         body: formData,
       })
-      .then(response => response.json())
-      .then(data => {
-        setName(data.Nombre || '');
-      })
-      .catch(error => {
-        console.error('Error al verificar el usuario:', error);
-      });
+        .then(response => response.json())
+        .then(data => {
+          setName(data.Nombre || '');
+        })
+        .catch(error => {
+          console.error('Error al verificar el usuario:', error);
+        });
     }
-    
+
   }, [id]);
 
   const [files, setFiles] = useState<Record<string, FileUpload>>({
@@ -77,12 +75,12 @@ const Cierre: React.FC = () => {
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAutorizacionesEspeciales(e.target.checked);
-  }
+  };
 
   const isValidFile = (file: File, type: string) => {
     const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
     const validDocTypes = [...validImageTypes, 'application/pdf'];
-    
+
     if (type === 'recibo') {
       return validDocTypes.includes(file.type);
     }
@@ -118,12 +116,11 @@ const Cierre: React.FC = () => {
         });
 
         const responseData = await response.json().catch(() => ({}));
-        
+
         if (!response.ok) {
           throw new Error(responseData.message || 'Error en el servidor');
         }
 
-        console.log('Respuesta del servidor:', responseData);
         alert('Documentos enviados correctamente. Por favor revise su correo electrónico, ya que se le notificará una vez los documentos hayan sido procesados.');
         const resetFiles: Record<string, FileUpload> = {
           cheque: { file: null, preview: null },
@@ -132,11 +129,11 @@ const Cierre: React.FC = () => {
         };
         setFiles(resetFiles);
         setAutorizacionesEspeciales(false);
-        
+
       } catch (error) {
         console.error('Error al enviar documentos:', error);
-        const errorMessage = error instanceof Error 
-          ? error.message 
+        const errorMessage = error instanceof Error
+          ? error.message
           : 'Ocurrió un error desconocido';
         alert(`Error al enviar los documentos: ${errorMessage}`);
       } finally {
@@ -153,18 +150,16 @@ const Cierre: React.FC = () => {
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-3xl mx-auto">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-block">
-            <img 
+            <img
               src="/logo.png"
-              alt="Logo" 
-              className=" w-40 object-contain" 
+              alt="Logo"
+              className=" w-40 object-contain"
             />
           </div>
         </div>
 
-        {/* Main Card */}
         <div className="card bg-base-200 shadow-2xl">
           <div className="card-body">
             <h2 className="card-title md:text-2xl text-xl mb-2">
@@ -219,36 +214,33 @@ const Cierre: React.FC = () => {
             </div>
 
             <fieldset className="fieldset bg-base-100 border-base-300 rounded-box w-64 border p-4">
-                <legend className="fieldset-legend">Hay autorizaciones especiales?</legend>
-                <label className="label">
-                    <input type="checkbox"  className="toggle" onChange={handleCheckboxChange} checked={autorizacionesEspeciales} />
-                    <span className="label-text ml-2">Sí, hay autorizaciones especiales</span>
-                </label>
+              <legend className="fieldset-legend">Hay autorizaciones especiales?</legend>
+              <label className="label">
+                <input type="checkbox" className="toggle" onChange={handleCheckboxChange} checked={autorizacionesEspeciales} />
+                <span className="label-text ml-2">Sí, hay autorizaciones especiales</span>
+              </label>
             </fieldset>
 
-            {/* Progress */}
             <div className="mt-8 mb-6">
               <div className="flex items-center justify-between text-sm mb-2">
                 <span className="font-medium">Progreso de carga</span>
                 <span className="badge badge-outline ">{uploadedCount} de 4</span>
               </div>
-              <progress 
-                className=" progress w-full " 
-                value={uploadedCount} 
+              <progress
+                className=" progress w-full "
+                value={uploadedCount}
                 max="4"
               ></progress>
             </div>
 
-            {/* Submit Button */}
             <div className="card-actions justify-end mt-4">
               <button
                 onClick={handleSubmit}
                 disabled={!allFilesUploaded || isSubmitting}
-                className={`btn btn-block ${
-                  allFilesUploaded && !isSubmitting
-                    ? 'btn bg-orange-100 text-black'
-                    : 'btn-disabled'
-                }`}
+                className={`btn btn-block ${allFilesUploaded && !isSubmitting
+                  ? 'btn bg-orange-100 text-black'
+                  : 'btn-disabled'
+                  }`}
               >
                 {isSubmitting ? (
                   <>
@@ -265,7 +257,6 @@ const Cierre: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="text-center mt-8">
           <a className="text-sm text-black/70" href="https://redtec.ai/" target="_blank" rel="noopener noreferrer">
             &copy; 2024 Redtec. Todos los derechos reservados.

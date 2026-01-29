@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import UploadBox from '../components/UploadBox';
 import { useParams } from 'react-router-dom';
 
-
 interface FileUpload {
   file: File | null;
   preview: string | null;
@@ -12,7 +11,6 @@ const Comprobante: React.FC = () => {
   const { id, cuota } = useParams();
   const [urlId, setUrlId] = useState<string | null>(null);
   const [nameclient, setName] = useState<string>('');
-
 
   useEffect(() => {
     setUrlId(id || null);
@@ -25,15 +23,15 @@ const Comprobante: React.FC = () => {
         method: 'POST',
         body: formData,
       })
-      .then(response => response.json())
-      .then(data => {
-        setName(data.Nombre || '');
-      })
-      .catch(error => {
-        console.error('Error al verificar el usuario:', error);
-      });
+        .then(response => response.json())
+        .then(data => {
+          setName(data.Nombre || '');
+        })
+        .catch(error => {
+          console.error('Error al verificar el usuario:', error);
+        });
     }
-    
+
   }, [id]);
 
   const [files, setFiles] = useState<Record<string, FileUpload>>({
@@ -105,19 +103,18 @@ const Comprobante: React.FC = () => {
         });
 
         const responseData = await response.json().catch(() => ({}));
-        
+
         if (!response.ok) {
           throw new Error(responseData.message || 'Error en el servidor');
         }
 
-        console.log('Respuesta del servidor:', responseData);
         alert('Documento enviado correctamente. Por favor revise su correo electrónico, ya que se le notificará una vez el documento haya sido procesado.');
         setFiles({ comprobante: { file: null, preview: null } });
-        
+
       } catch (error) {
         console.error('Error al enviar documento:', error);
-        const errorMessage = error instanceof Error 
-          ? error.message 
+        const errorMessage = error instanceof Error
+          ? error.message
           : 'Ocurrió un error desconocido';
         alert(`Error al enviar el documento: ${errorMessage}`);
       } finally {
@@ -134,18 +131,16 @@ const Comprobante: React.FC = () => {
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-3xl mx-auto">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-block">
-            <img 
+            <img
               src="/logo.png"
-              alt="Logo" 
-              className=" w-40 object-contain" 
+              alt="Logo"
+              className=" w-40 object-contain"
             />
           </div>
         </div>
 
-        {/* Main Card */}
         <div className="card bg-base-200 shadow-2xl">
           <div className="card-body">
             <h2 className="card-title md:text-2xl text-xl mb-2">
@@ -171,29 +166,26 @@ const Comprobante: React.FC = () => {
               />
             </div>
 
-            {/* Progress */}
             <div className="mt-8 mb-6">
               <div className="flex items-center justify-between text-sm mb-2">
                 <span className="font-medium">Progreso de carga</span>
                 <span className="badge badge-outline ">{uploadedCount} de 1</span>
               </div>
-              <progress 
-                className="progress w-full " 
-                value={uploadedCount} 
+              <progress
+                className="progress w-full "
+                value={uploadedCount}
                 max="1"
               ></progress>
             </div>
 
-            {/* Submit Button */}
             <div className="card-actions justify-end mt-4">
               <button
                 onClick={handleSubmit}
                 disabled={!allFilesUploaded || isSubmitting}
-                className={`btn btn-block ${
-                  allFilesUploaded && !isSubmitting
-                    ? 'btn bg-orange-100 text-black'
-                    : 'btn-disabled'
-                }`}
+                className={`btn btn-block ${allFilesUploaded && !isSubmitting
+                  ? 'btn bg-orange-100 text-black'
+                  : 'btn-disabled'
+                  }`}
               >
                 {isSubmitting ? (
                   <>
@@ -210,7 +202,6 @@ const Comprobante: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="text-center mt-8">
           <a className="text-sm text-black/70" href="https://redtec.ai/" target="_blank" rel="noopener noreferrer">
             &copy; 2024 Redtec. Todos los derechos reservados.

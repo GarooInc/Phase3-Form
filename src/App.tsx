@@ -105,13 +105,6 @@ const DocumentUploadForm: React.FC = () => {
                 formData.append("recibo", files.recibo.file);
                 formData.append("id", urlId);
 
-                console.log("Enviando datos al webhook:", {
-                    id: urlId,
-                    frontal: files.frontal.file.name,
-                    trasera: files.trasera.file.name,
-                    recibo: files.recibo.file.name,
-                });
-
                 const response = await fetch(
                     `${import.meta.env.VITE_API_URL}/id-documents`,
                     {
@@ -128,13 +121,10 @@ const DocumentUploadForm: React.FC = () => {
                     );
                 }
 
-                console.log("Respuesta del servidor:", responseData);
                 alert(
                     "Documentos enviados correctamente. Por favor revise su correo electrónico, ya que se le notificará una vez los documentos hayan sido procesados.",
                 );
 
-                // Opcional: Redirigir o limpiar el formulario
-                // window.location.href = '/exito';
             } catch (error) {
                 console.error("Error al enviar documentos:", error);
                 const errorMessage =
@@ -157,7 +147,6 @@ const DocumentUploadForm: React.FC = () => {
     return (
         <div className="min-h-screen bg-white p-6">
             <div className="max-w-3xl mx-auto">
-                {/* Logo */}
                 <div className="text-center mb-8">
                     <div className="inline-block">
                         <img
@@ -168,7 +157,6 @@ const DocumentUploadForm: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Main Card */}
                 <div className="card bg-base-200 shadow-2xl">
                     <div className="card-body">
                         <h2 className="card-title md:text-2xl text-xl mb-2">
@@ -224,7 +212,6 @@ const DocumentUploadForm: React.FC = () => {
                             />
                         </div>
 
-                        {/* Progress */}
                         <div className="mt-8 mb-6">
                             <div className="flex items-center justify-between text-sm mb-2">
                                 <span className="font-medium">
@@ -241,16 +228,14 @@ const DocumentUploadForm: React.FC = () => {
                             ></progress>
                         </div>
 
-                        {/* Submit Button */}
                         <div className="card-actions justify-end mt-4">
                             <button
                                 onClick={handleSubmit}
                                 disabled={!allFilesUploaded || isSubmitting}
-                                className={`btn btn-block ${
-                                    allFilesUploaded && !isSubmitting
-                                        ? "btn bg-orange-100 text-black"
-                                        : "btn-disabled"
-                                }`}
+                                className={`btn btn-block ${allFilesUploaded && !isSubmitting
+                                    ? "btn bg-orange-100 text-black"
+                                    : "btn-disabled"
+                                    }`}
                             >
                                 {isSubmitting ? (
                                     <>
@@ -267,7 +252,6 @@ const DocumentUploadForm: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Footer */}
                 <div className="text-center mt-8">
                     <a
                         className="text-sm text-black/70"
