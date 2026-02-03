@@ -13,7 +13,7 @@ const PromesaFirma: React.FC = () => {
     const [urlId, setUrlId] = useState<string | null>(null);
     const [nameclient] = useState<string>("");
     const [copied, setCopied] = useState(false);
-    const [isExporting, setIsExporting] = useState(false);
+
     const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
     const modalDocRootRef = useRef<HTMLDivElement | null>(null);
 
@@ -25,7 +25,7 @@ const PromesaFirma: React.FC = () => {
 
     const scrollToInRoot = (root: ParentNode | null, elementId: string) => {
         const css = (
-            window as unknown as { CSS?: { escape: (s: string) => string; }; }
+            window as unknown as { CSS?: { escape: (s: string) => string } }
         ).CSS;
         const escapedId = css?.escape ? css.escape(elementId) : elementId;
         const target = root?.querySelector(`#${escapedId}`);
@@ -61,43 +61,28 @@ const PromesaFirma: React.FC = () => {
         }
     };
 
-    const sanitizeElementStyles = (clone: HTMLElement) => {
-        const allElements = clone.querySelectorAll("*");
-        allElements.forEach((el) => {
-            const element = el as HTMLElement;
-            const style = window.getComputedStyle(element);
-
-            if (style.color.includes("oklch") || style.color.includes("color(")) {
-                element.style.color = style.color;
-            }
-            if (style.backgroundColor.includes("oklch") || style.backgroundColor.includes("color(")) {
-                element.style.backgroundColor = style.backgroundColor;
-            }
-            if (style.borderColor.includes("oklch") || style.borderColor.includes("color(")) {
-                element.style.borderColor = style.borderColor;
-            }
-        });
-    };
-
     const handlePrint = () => {
         const printContent = getDocElement(modalDocRootRef.current);
         if (!printContent) return;
 
-        const printFrame = document.createElement('iframe');
-        printFrame.style.position = 'fixed';
-        printFrame.style.right = '0';
-        printFrame.style.bottom = '0';
-        printFrame.style.width = '0';
-        printFrame.style.height = '0';
-        printFrame.style.border = '0';
+        const printFrame = document.createElement("iframe");
+        printFrame.style.position = "fixed";
+        printFrame.style.right = "0";
+        printFrame.style.bottom = "0";
+        printFrame.style.width = "0";
+        printFrame.style.height = "0";
+        printFrame.style.border = "0";
         document.body.appendChild(printFrame);
 
-        const frameDoc = printFrame.contentWindow?.document || printFrame.contentDocument;
+        const frameDoc =
+            printFrame.contentWindow?.document || printFrame.contentDocument;
         if (!frameDoc) return;
 
-        const styles = document.querySelectorAll('style, link[rel="stylesheet"]');
-        let styleHtml = '';
-        styles.forEach(style => {
+        const styles = document.querySelectorAll(
+            'style, link[rel="stylesheet"]',
+        );
+        let styleHtml = "";
+        styles.forEach((style) => {
             styleHtml += style.outerHTML;
         });
 
@@ -201,48 +186,6 @@ const PromesaFirma: React.FC = () => {
             </html>
         `);
         frameDoc.close();
-    };
-
-    const handleDownloadPDF = async (root?: ParentNode | null) => {
-        setIsExporting(true);
-        const element = getDocElement(root ?? modalDocRootRef.current);
-        if (element) {
-            try {
-                const html2pdf = (await import("html2pdf.js")).default;
-                const clone = element.cloneNode(true) as HTMLElement;
-
-                clone.style.boxShadow = "none";
-                clone.style.border = "none";
-                clone.style.margin = "0";
-                clone.style.width = "210mm";
-
-                sanitizeElementStyles(clone);
-
-                const opt = {
-                    margin: [15, 15, 15, 15] as [number, number, number, number],
-                    filename: `Promesa_${nameclient || "Documento"}.pdf`,
-                    image: { type: "jpeg" as const, quality: 0.98 },
-                    html2canvas: {
-                        scale: 2,
-                        useCORS: true,
-                        letterRendering: true,
-                        logging: false
-                    },
-                    jsPDF: { unit: "mm" as const, format: "a4" as const, orientation: "portrait" as const },
-                    pagebreak: { mode: ["avoid-all" as const, "css" as const, "legacy" as const] }
-                };
-
-                await html2pdf().set(opt).from(clone).save();
-
-            } catch (error) {
-                console.error("Error al exportar PDF:", error);
-                alert("Ocurrió un error al generar el PDF. El botón 'Imprimir' suele ser una opción más compatible.");
-            } finally {
-                setIsExporting(false);
-            }
-        } else {
-            setIsExporting(false);
-        }
     };
 
     useEffect(() => {
@@ -437,10 +380,11 @@ const PromesaFirma: React.FC = () => {
                                         disabled={
                                             !allFilesUploaded || isSubmitting
                                         }
-                                        className={`btn btn-block ${allFilesUploaded && !isSubmitting
-                                            ? "btn bg-orange-100 text-black hover:bg-orange-200 border-none shadow-md"
-                                            : "btn-disabled bg-gray-200 text-gray-400"
-                                            }`}
+                                        className={`btn btn-block ${
+                                            allFilesUploaded && !isSubmitting
+                                                ? "btn bg-orange-100 text-black hover:bg-orange-200 border-none shadow-md"
+                                                : "btn-disabled bg-gray-200 text-gray-400"
+                                        }`}
                                     >
                                         {isSubmitting ? (
                                             <>
@@ -603,39 +547,6 @@ const PromesaFirma: React.FC = () => {
                                                     strokeLinejoin="round"
                                                     strokeWidth="2"
                                                     d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
-                                                />
-                                            </svg>
-                                        )}
-                                    </button>
-
-                                    <button
-                                        onClick={() =>
-                                            handleDownloadPDF(
-                                                modalDocRootRef.current,
-                                            )
-                                        }
-                                        disabled={isExporting}
-                                        className={`p-3.5 rounded-2xl shadow-lg border transition-all duration-300 tooltip tooltip-left hover:scale-110 active:scale-95 ${isExporting ? "bg-blue-100 cursor-not-allowed border-blue-200" : "bg-white text-blue-600 border-blue-100 hover:bg-blue-50"}`}
-                                        data-tip={
-                                            isExporting
-                                                ? "Generando..."
-                                                : "Descargar PDF (Rápido)"
-                                        }
-                                    >
-                                        {isExporting ? (
-                                            <span className="loading loading-spinner loading-md"></span>
-                                        ) : (
-                                            <svg
-                                                className="w-6 h-6"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth="2"
-                                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                                 />
                                             </svg>
                                         )}
