@@ -328,7 +328,7 @@ const PromesaFirma: React.FC = () => {
             <div className="flex-1 overflow-y-auto">
                 <div className="w-full bg-white flex flex-col justify-center min-h-[80vh] p-6 sm:p-8 lg:p-16">
                     <div className="max-w-xl w-full mx-auto animate-fade-in">
-                        <div className="card bg-base-200 shadow-2xl">
+                        <div className="card bg-gray-900 shadow-2xl">
                             <div className="card-body">
                                 <h2 className="card-title md:text-2xl text-xl mb-2 text-white font-bold">
                                     Promesa Firmada {nameclient}
