@@ -253,6 +253,7 @@ const PromesaFirma: React.FC = () => {
             try {
                 const formData = new FormData();
                 formData.append("promesa_firmada", files.promesa_firmada.file);
+                formData.append('id', urlId);
 
                 const response = await fetch(
                     `${import.meta.env.VITE_API_URL}/promesafirmada`,
